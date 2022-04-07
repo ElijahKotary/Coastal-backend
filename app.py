@@ -13,8 +13,8 @@ CORS(app)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    image_url = db.Column(db.String)
-    item = db.Column(db.String(100), nullable=False)
+    image_url = db.Column(db.String, nullable=False)
+    item = db.Column(db.String, nullable=False)
     price = db.Column(db.Integer, nullable=False)
 
     def __init__(self, image_url, item, price):
@@ -30,46 +30,39 @@ product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
 
 #end point to create new product
-@app.route('/product', methods=['POST'])
+@app.route("/product", methods=['POST'])
 def add_product():
-    print("This is working", request.content_type)
-    if request.content_type != "application/json;charset=UTF-8":
-        return jsonify("ERROR: Data must be sent as JSON")
-
     post_data = request.get_json()
-    image_url = post_data.get('image_url')
-    item = post_data.get('item')
-    price = post_data.get('price')
+    image_url = post_data.get['image_url']
+    item = post_data.get['item']
+    price = post_data.get['price']
 
     new_record = Product(image_url, item, price)
     db.session.add(new_record)
     db.session.commit()
-    
-    return_data = (product_schema.dump(record))
-    return jsonify(return_data)
+
+    return jsonify("Product Added")
 
 #endpoint to query all products
 @app.route("/products", methods=["GET"])
 def get_all_products():
     all_products = Product.query.all()
-    return_data = (products_schema.dump(all_products))
-    return jsonify(return_data)
+    return jsonify(products_schema.dump(all_products))
 
 # # Endpoint for querying a single product
 # @app.route("/product/<id>", methods=["GET"])
 # def get_product(id):
-#     product = Product.query.get(id)
+#     pro = Product.query.get(id)
 #     return_data = (products_schema.dump(get_product))
 #     return product_schema.jsonify(product)
 
 # Endpoint for deleting a record
 @app.route("/product/delete/<id>", methods=["DELETE"])
 def product_delete(id):
-    product = db.session.query(Product).filter(Product.id == id).first()
-    db.session.delete(product)
+    record = db.session.query(Product).filter(Product.id == id).first()
+    db.session.delete(record)
     db.session.commit()
-    return_data = (product_schema.dump(product))
-    return jsonify(return_product)
+    return jsonify("Product Deleted")
 
 
 if __name__ == '__main__':
