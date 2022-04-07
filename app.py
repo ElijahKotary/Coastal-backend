@@ -5,18 +5,17 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://slxkhaaopgcmqd:980eb134404e00bb48996f5c3d765b0fadb3632aa6b03b7b8571e024c8ca71fd@ec2-3-230-122-20.compute-1.amazonaws.com:5432/d54crk6ts0nj1g"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://claizgaivvgtdp:c40cf15a9bc9fdd14ba5ea5afb85e01f2fbe93fadf64491d2a16a80b998558d5@ec2-54-173-77-184.compute-1.amazonaws.com:5432/d3hpp1nj0upg0"
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-
 CORS(app)
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    image = db.Column(db.String(100), unique= True, nullable=False)
-    item = db.Column(db.String(100), unique=False)
-    price = db.Column(db.Integer, unique=False)
+    image = db.Column(db.String, nullable=False)
+    item = db.Column(db.String, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
 
     def __init__(self, image, item, price):
         self.image = image
@@ -31,44 +30,40 @@ product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
 
 #end point to create new product
-@app.route('/product', methods=['POST'])
+@app.route("/product", methods=['POST'])
 def add_product():
-    image = request.json['image']
-    item = request.json['item']
-    price = request.json['price']
+    post_data = request.get_json()
+    image = post_data.get['image']
+    item = post_data.get['item']
+    price = post_data.get['price']
 
-    new_product = Product(image, item, price)
-
-    db.session.add(new_product)
+    new_record = Product(image, item, price)
+    db.session.add(new_record)
     db.session.commit()
-    
-    product = Product.query.get(new_product.id)
 
-    return product_schema.jsonify(product)
+    return jsonify("Product Added")
 
 #endpoint to query all products
 @app.route("/products", methods=["GET"])
-def get_products():
+def get_all_products():
     all_products = Product.query.all()
-    result = products_schema.dump(all_products)
-    return jsonify(result)
+    return jsonify(products_schema.dump(all_products))
 
-# Endpoint for querying a single product
-@app.route("/product/<id>", methods=["GET"])
-def get_product(id):
-    product = Product.query.get(id)
-    return product_schema.jsonify(product)
+# # Endpoint for querying a single product
+# @app.route("/product/<id>", methods=["GET"])
+# def get_product(id):
+#     pro = Product.query.get(id)
+#     return_data = (products_schema.dump(get_product))
+#     return product_schema.jsonify(product)
 
 # Endpoint for deleting a record
-@app.route("/product/<id>", methods=["DELETE"])
+@app.route("/product/delete/<id>", methods=["DELETE"])
 def product_delete(id):
-    product = Product.query.get(id)
-    db.session.delete(product)
+    record = db.session.query(Product).filter(Product.id == id).first()
+    db.session.delete(record)
     db.session.commit()
-
-    return product_schema.jsonify(product)
+    return jsonify("Product Deleted")
 
 
 if __name__ == '__main__':
-    db.create_all()
     app.run(debug=True)
