@@ -15,17 +15,17 @@ CORS(app)
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image = db.Column(db.String(100), unique= True, nullable=False)
-    name = db.Column(db.String(100), unique=False)
+    item = db.Column(db.String(100), unique=False)
     price = db.Column(db.Integer, unique=False)
 
-    def __init__(self, image, name, price):
+    def __init__(self, image, item, price):
         self.image = image
-        self.name = name
+        self.item = item
         self.price = price
     
 class ProductSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'image', 'name', 'price')
+        fields = ('id', 'image', 'item', 'price')
 
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
@@ -34,10 +34,10 @@ products_schema = ProductSchema(many=True)
 @app.route('/product', methods=['POST'])
 def add_product():
     image = request.json['image']
-    name = request.json['name']
+    item = request.json['item']
     price = request.json['price']
 
-    new_product = Product(image, name, price)
+    new_product = Product(image, item, price)
 
     db.session.add(new_product)
     db.session.commit()
